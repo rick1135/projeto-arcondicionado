@@ -1,0 +1,196 @@
+"""Windows tray entry point. UI callbacks are queued onto the Tk main thread."""
+import ctypes
+import json
+import os
+import queue
+import threading
+from pathlib import Path
+import tkinter as tk
+from tkinter import messagebox
+import pystray
+from PIL import Image, ImageDraw
+from app import App
+from controller import MODES, FANS
+
+PREFS = Path(os.environ.get('LOCALAPPDATA', str(Path.home()))) / 'ElginControl' / 'preferencias.json'
+
+
+def icon_image():
+    image = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(image)
+    draw.rounded_rectangle((2, 2, 62, 62), radius=14, fill='#1671c5')
+    draw.line((32, 11, 32, 53), fill='white', width=4)
+    draw.line((14, 21, 50, 43), fill='white', width=4)
+    draw.line((14, 43, 50, 21), fill='white', width=4)
+    for pts in [(24, 16, 32, 23, 40, 16), (24, 48, 32, 41, 40, 48)]:
+        draw.line(pts, fill='white', width=3)
+    return image
+
+
+class TrayApp(App):
+    def __init__(self, root):
+        self.commands = queue.Queue()
+        self.icon = None
+        self._ready = False
+        self._last_error = None
+        self._quitting = False
+        self.snapshot = {}
+        try:
+            self.prefs = json.loads(PREFS.read_text(encoding='utf-8'))
+        except (ValueError, OSError):
+            self.prefs = {}
+        super().__init__(root)
+        root.title('Elgin • Controle local')
+        try:
+            root.iconbitmap(str(Path(__file__).with_name('elgin.ico')))
+        except tk.TclError:
+            pass
+        saved = self.prefs.get('devices_path')
+        if saved and Path(saved).is_file():
+            self.load(saved)
+            index = next((i for i, r in enumerate(self.records) if r['id'] == self.prefs.get('device_id')), self.device.current())
+            self.device.current(index)
+            self.select_device()
+            self.ip.set(self.prefs.get('ip', self.ip.get()))
+        self._ready = True
+        self.save_preferences()
+        root.protocol('WM_DELETE_WINDOW', self.hide)
+        root.bind('<Unmap>', self.minimized)
+        self.icon = pystray.Icon('ElginControl', icon_image(), 'Elgin • Controle local', self.menu())
+        threading.Thread(target=self.icon.run, daemon=True).start()
+        root.after(150, self.dispatch)
+        if self.control.config:
+            root.withdraw()
+            root.after(350, self.read)
+
+    def save_preferences(self):
+        if not self._ready or not self.control.config:
+            return
+        PREFS.parent.mkdir(parents=True, exist_ok=True)
+        prefs = {'devices_path': self.path.get(), 'device_id': self.control.config['id'], 'ip': self.ip.get().strip()}
+        try:
+            PREFS.write_text(json.dumps(prefs, ensure_ascii=False, indent=2), encoding='utf-8')
+        except OSError:
+            pass
+
+    def select_device(self):
+        super().select_device()
+        self.save_preferences()
+
+    def run(self, fn):
+        self.save_preferences()
+        super().run(fn)
+
+    def show_error(self, result):
+        if self.root.state() == 'withdrawn':
+            if self.icon and result != self._last_error:
+                self._last_error = result
+                try:
+                    self.icon.notify(result, 'Elgin • Verifique a conexão')
+                except Exception:
+                    pass
+        else:
+            messagebox.showerror('Verifique a conexão ou o comando', result)
+
+    def render(self, state):
+        super().render(state)
+        self.snapshot = state.copy()
+        self._last_error = None
+        if self.icon:
+            self.icon.title = f"Elgin • {'Ligado' if state.get('1') else 'Desligado'} • {state.get('2', '—')} °C"
+            self.icon.update_menu()
+
+    def send(self, fn):
+        def action(icon, item):
+            self.commands.put(fn)
+        return action
+
+    def available(self, item):
+        return self.connected and not self.busy
+
+    def dispatch(self):
+        try:
+            fn = self.commands.get_nowait()
+            fn()
+        except queue.Empty:
+            pass
+        if not self._quitting:
+            self.root.after(150, self.dispatch)
+
+    def auto_read(self):
+        if self.control.config and not self.busy:
+            self.read()
+        self.root.after(30000 if not self.connected else 10000, self.auto_read)
+
+    def hide(self):
+        self.root.withdraw()
+
+    def minimized(self, event):
+        if event.widget is self.root and self.root.state() == 'iconic':
+            self.root.after(50, self.hide)
+
+    def show(self):
+        self.root.deiconify()
+        self.root.lift()
+        self.root.focus_force()
+
+    def quit_app(self):
+        self._quitting = True
+        self.save_preferences()
+        if self.icon:
+            self.icon.stop()
+        self.root.destroy()
+
+    def change_temp(self, delta):
+        value = self.snapshot.get('2')
+        if type(value) is int:
+            self.write(2, value + delta)
+
+    def toggle(self, dp):
+        state = self.snapshot
+        value = ('off' if state.get('31') == 'same' else 'same') if dp == 31 else not bool(state.get(str(dp)))
+        self.write(dp, value)
+
+    def menu(self):
+        Item, Menu = pystray.MenuItem, pystray.Menu
+        modes = Menu(*[Item(label, self.send(lambda value=value: self.write(4, value)), enabled=self.available,
+                            checked=lambda item, value=value: self.snapshot.get('4') == value, radio=True)
+                       for label, value in MODES.items()])
+        fans = Menu(*[Item(label, self.send(lambda value=value: self.write(5, value)),
+                           enabled=lambda item, value=value: self.available(item) and (value != 'strong' or self.snapshot.get('4') == 'cold'),
+                           checked=lambda item, value=value: self.snapshot.get('5') == value, radio=True)
+                      for label, value in FANS.items()])
+        toggles = [Item(label, self.send(lambda dp=dp: self.toggle(dp)),
+                        checked=lambda item, dp=dp: self.snapshot.get(str(dp)) == 'same' if dp == 31 else bool(self.snapshot.get(str(dp))),
+                        enabled=lambda item, dp=dp: self.available(item) and (dp != 25 or self.snapshot.get('4') == 'cold'))
+                   for dp, label in [(11,'Folha (Eco/UVC)'),(25,'Sleep'),(36,'Display'),(31,'Oscilação')]]
+        return Menu(
+            Item('Abrir controle', self.send(self.show), default=True),
+            Item(lambda item: f"{'Ligado' if self.snapshot.get('1') else 'Desligado'} • Ajustada {self.snapshot.get('2', '—')} °C • Ambiente {self.snapshot.get('3', '—')} °C", None, enabled=False),
+            Menu.SEPARATOR,
+            Item('Ligar', self.send(lambda: self.write(1, True)), enabled=self.available),
+            Item('Desligar', self.send(lambda: self.write(1, False)), enabled=self.available),
+            Item('Temperatura +1 °C', self.send(lambda: self.change_temp(1)), enabled=self.available),
+            Item('Temperatura −1 °C', self.send(lambda: self.change_temp(-1)), enabled=self.available),
+            Item('Modo', modes), Item('Ventilação', fans),
+            *toggles,
+            Menu.SEPARATOR,
+            Item('Temporizadores / Configurações', self.send(self.show)),
+            Item('Reconectar / Atualizar', self.send(self.read), enabled=lambda item: not self.busy),
+            Menu.SEPARATOR,
+            Item('Sair', self.send(self.quit_app)))
+
+
+if __name__ == '__main__':
+    mutex = None
+    if os.name == 'nt':
+        kernel = ctypes.WinDLL('kernel32', use_last_error=True)
+        kernel.CreateMutexW.argtypes = (ctypes.c_void_p, ctypes.c_bool, ctypes.c_wchar_p)
+        kernel.CreateMutexW.restype = ctypes.c_void_p
+        mutex = kernel.CreateMutexW(None, False, 'Local\\ElginControlTray')
+        if ctypes.get_last_error() == 183:
+            ctypes.windll.user32.MessageBoxW(None, 'O controle já está aberto. Procure o floco azul perto do relógio (ou na seta ^).', 'Elgin', 0)
+            raise SystemExit(0)
+    root = tk.Tk()
+    TrayApp(root)
+    root.mainloop()
