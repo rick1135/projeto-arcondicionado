@@ -9,9 +9,9 @@ Elgin Eco Dream HIFI09C2WA; outros modelos e firmwares não foram validados.
 
 - Liga/desliga, temperatura, modos e velocidades de ventilação.
 - Ventilação silenciosa, Turbo, Sleep, Display e Oscilação.
-- Ícone de folha (Eco/UVC): campo identificado; significado físico ainda incerto.
+- Ícone de folha (Eco/UVC): modo econômico.
 - Inicialização com a sessão do Windows e execução sem console usando pythonw.exe.
-- Temporizadores experimentais: campos mapeados, envio e execução ainda não validados.
+- Agendamento para desligar/ligar dispositivo.
 
 ## Instalação
 
@@ -33,19 +33,6 @@ Feche uma versão anterior pelo menu Sair antes de atualizar.
 Selecione seu `devices.json` na interface e conecte. Fechar/minimizar mantém
 o processo ativo; botão direito no ícone > Sair encerra.
 Veja [LEIA-ME.md](LEIA-ME.md) para detalhes, limites e solução de problemas.
-
-## Dados privados
-
-**Nunca publique `devices.json`: ele contém a chave local do aparelho.**
-Mantenha credenciais fora do repositório, por exemplo em
-`%USERPROFILE%\elgin-controle`, e selecione esse caminho na interface.
-O app não precisa de Access ID nem Access Secret para controlar pela LAN.
-
-O `.gitignore` exclui arquivos TinyTuya, preferências, ambientes, certificados,
-caches, logs e capturas. Isso não remove arquivos já versionados ou histórico.
-Revise `git diff --cached` antes de publicar. Não exponha tokens, chaves, IDs
-pessoais ou capturas de credenciais em commits, issues ou documentação.
-O código não inclui uma chave nem um dispositivo pessoal fixado.
 
 ## Desenvolvimento
 
