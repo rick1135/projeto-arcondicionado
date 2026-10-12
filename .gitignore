@@ -6,6 +6,9 @@ tinytuya*.json
 preferencias*.json
 credentials*.json
 secrets*.json
+tokens*.json
+auth*.json
+config.local.*
 .env
 .env.*
 *.pem
@@ -25,6 +28,9 @@ build/
 dist/
 *.egg-info/
 *.spec
+*.sqlite
+*.sqlite3
+*.db
 # Dados pessoais, logs e capturas
 *.log
 *.zip
