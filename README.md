@@ -10,7 +10,7 @@ nos códigos DPS e no protocolo de comunicação.
 
 <p align="center">
   <img
-    src="docs/images/painel.png"
+    src="docs/images/Screenshot_1.png"
     alt="Painel do Elgin Control Tray"
     width="1000"
   >
