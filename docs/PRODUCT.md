@@ -35,4 +35,4 @@ O app permanece na bandeja do Windows. Um clique no ícone abre uma janela compa
 
 ## Brand Commitments
 
-O painel compacto escuro fornecido na captura e o projeto `c0dag/samsung-windfree-tray-app` são referências de composição e comportamento, não de integração ou identidade Samsung.
+O Quick Settings / Flyout do Windows 11 fornecido no ZIP do Stitch em 14/10/2026 determina a composição compacta, as superfícies escuras e os acentos azuis. A interface segue o pedido explícito: 380 × 560 px, temperatura acima da grade e seis atalhos de Modo, Vento, Eco, Tomada EKAZA, Dormir e Display. Recursos e rótulos permanecem vinculados aos comandos confirmados do Elgin e da EKAZA.

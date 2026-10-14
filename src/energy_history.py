@@ -26,7 +26,8 @@ def reference_data():
     for candidate in (CONFIG_DIR / "energy_reference.json", ROOT / "energy_reference.json", BASE / "energy_reference.json"):
         if candidate.is_file():
             return json.loads(candidate.read_text(encoding="utf-8"))
-    return {}
+    return {"captured_date": None, "today_kwh": None, "total_kwh": None,
+            "months": {}, "days": {}}
 
 
 def valid_number(value):
@@ -43,10 +44,11 @@ def format_kwh(value):
 
 def reference_snapshot(now=None):
     ref = reference_data()
+    source = "reference" if ref["total_kwh"] is not None or ref["months"] or ref["days"] else "empty"
     return {"today_kwh": ref["today_kwh"], "total_kwh": ref["total_kwh"],
-            "local_total_kwh": 0.0, "source": "reference", "total_source": "reference",
+            "local_total_kwh": 0.0, "source": source, "total_source": source,
             "reference_date": ref["captured_date"], "coverage_seconds": 0,
-            "last_reading": None, "recent": [], "years": [2026], "gaps": 0}
+            "last_reading": None, "recent": [], "years": [(now or local_now()).year], "gaps": 0}
 
 
 class EnergyHistory:
@@ -54,7 +56,8 @@ class EnergyHistory:
         self.path = Path(path) if path else (ROOT / "data" / "energy_history.sqlite3" if (ROOT / "data").is_dir() else ROOT / "energy_history.sqlite3")
         if config is None:
             config_file = next((p for p in (CONFIG_DIR / "energy_config.json", ROOT / "energy_config.json", BASE / "energy_config.json") if p.is_file()), CONFIG_DIR / "energy_config.json")
-            config = json.loads(config_file.read_text(encoding="utf-8"))
+            config = (json.loads(config_file.read_text(encoding="utf-8")) if config_file.is_file()
+                      else {"total_dp": None, "total_scale": 3, "max_estimation_gap_seconds": 300})
         self.config = config
         self.total_dp = str(config["total_dp"]) if config.get("total_dp") is not None else None
         if self.total_dp == "17":

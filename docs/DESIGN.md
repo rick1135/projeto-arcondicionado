@@ -1,19 +1,18 @@
-# Direção visual — Elgin AC na bandeja
+# Direção visual — Flyout Windows 11
 
-- Painel alto de 390 × 844 px, sem moldura, alinhado ao canto inferior direito da área útil do Windows e reduzido proporcionalmente quando a tela é menor. Coordenadas são escaladas uma vez; fontes e imagens usam a mesma escala.
-- Fundo em gradiente azul-noite, texto branco suave, acentos ciano nos controles ativos e verde no estado conectado. A imagem de referência do usuário define a composição.
-- Cabeçalho com temperatura ambiente e energia; ar-condicionado claro e fluxo de ar luminoso no centro; setpoint grande centralizado; barra horizontal com botões − e +; quatro cartões independentes de Modo, Vento, Funções e Eco.
-- Entre o ajuste de temperatura e os cartões, uma linha discreta apresenta o estado da tomada EKAZA e abre sua vista própria sem competir com os controles do ar.
-- A vista da tomada mantém o fundo azul-noite, mostra o estado em destaque, potência/tensão/corrente confirmadas pela rede e uma ação explícita. O botão de desligar permanece acionável; quando o ar não está confirmado desligado, abre uma segunda vista com aviso e confirmação antes do corte.
-- Eco mostra o estado do DP 11 (Protect no app nativo). A vista Funções reúne Dormir, Aletas, Mudo, Display, Turbo e Timer de desligamento, com estados retornados pelo aparelho.
-- Estado de conexão sempre visível no rodapé. Feedback de comando e falha sem ocultar o estado anterior.
-- Configuração de início com o Windows acessível em uma segunda vista do mesmo painel.
-- O arquivo HTML e a captura fornecidos em outubro de 2026 são referências visuais para a vista principal; não copiar controles sem suporte no Elgin, como WindFree, umidade, filtro ou consumo.
-
-## Craft & Polish das três telas
-
-- O painel Tk usa espaçamento de 4/8/12/16/20/24 px, cards com raio de 18 px e borda sutil comum, textos secundários legíveis e foco de teclado visível.
-- A pílula Medição usa conteúdo medido, padding de 12 px, gap de 6 px e chevron de 16 px que não encolhe. Ícone, status e nome da tomada ficam em um bloco separado alinhado verticalmente.
-- Valores de telemetria e legendas são empilhados com intervalos explícitos. A posição da legenda usa a altura real da fonte.
-- Cards e badges suportam textos longos sem invadir ações vizinhas. O painel Windows é verificado em 100% e 80% com estado ligado, desligado, sem conexão e carga cheia.
-- `tools/render_previews.py` renderiza os componentes reais do app com dados ilustrativos, sem comunicação com os aparelhos. Os protótipos HTML não fazem parte do aplicativo distribuído.
+- Modo de uso: operar rapidamente o Elgin e a EKAZA na bandeja do Windows.
+- Referência: `code.html` e `screen.png` do arquivo Stitch fornecido em 14/10/2026. O pedido do usuário determina os seis atalhos, a ordem dos componentes e a dimensão; os controles ilustrativos do HTML não adicionam funções ao aparelho.
+- Janela Tkinter compacta de 380 × 560 px, sem bordas no uso normal. Abre no canto inferior direito da área útil retornada pelo Windows, acima da barra de tarefas, com fallback para as dimensões da tela Tk. Reduz proporcionalmente se o espaço disponível for menor.
+- Fundo sólido `#202020`, rodapé `#1B1B1B`, tiles `#303030`, bordas `#333333`/`#3E3E3E`. Acento ativo `#4CC2FF`, trilho preenchido do slider e thumb `#0078D4`. Sem ilustração de evaporadora ou animação contínua.
+- Pilha de fontes do ZIP: Segoe UI Variable, com alternativa Segoe UI. O Tk seleciona as faces nativas Small/Text/Display e Semibold disponíveis no Windows; o status em watts usa Consolas. Tamanhos em pixels e escala aplicada uma única vez. Cabeçalho legível, setpoint central e textos secundários `#CCCCCC`.
+- Os SVGs exatos do `code.html` ficam em `assets/stitch/icons/`, com PNGs transparentes derivados de 192 px. Preservam os paths, espessuras e acabamentos da referência e são adaptados à cor/escala com Pillow e cache de PhotoImage. Voltar usa o chevron original rotacionado; Dormir/Atualizar complementam o conjunto porque não constam no flyout do ZIP. A bandeja usa o mesmo floco de neve e fonte variável do sistema.
+- Cabeçalho: ambiente, Elgin Local e botão circular de energia. Temperatura de 16 a 32°C em passos inteiros, prévia durante o arraste e um comando ao soltar.
+- Grade de três colunas por duas linhas: Modo, Vento, Eco, Tomada EKAZA, Dormir e Display. Estados ativos em azul com conteúdo escuro; energia com ícone branco. Modo/Vento abrem seletores. O tile da tomada alterna o relé e a seta dedicada abre a segunda view, inclusive com o ar offline.
+- Mais funções preserva Aletas, Mudo, Turbo e o Timer real de 1 hora, além de Dormir/Display. Não apresenta durações que o comando não implementa.
+- Rodapé com conexão/erro/sincronização e engrenagem para configurações e reconexão. Hover e foco de teclado visíveis; Tab/Shift+Tab e Enter/Espaço nas ações.
+- Telemetria: três cards de W/V/A, resumo de hoje e mês atual, ação para histórico diário/mensal. Medidas indisponíveis ou com mais de 60 segundos não aparecem como atuais. Dados Cloud têm prioridade; estimativas e referências mantêm a origem explícita e não são somadas à Cloud.
+- Histórico compacto: quatro meses por página, anos navegáveis, oito barras diárias por página, seleção por mouse ou teclado, custo do mês com tarifa configurada. Ausência de leitura permanece `--`, distinta de zero confirmado.
+- Confirmação antes do corte da tomada quando o ar estiver ligado ou desconhecido, preservando a proteção existente. Configurações de início automático permanecem acessíveis.
+- Windows: `DwmSetWindowAttribute` aplica modo escuro (20), preferência de cantos (33) e borda (34). Para janelas sem decoração, região GDI arredondada garante cantos suaves; versões sem suporte mantêm fundo sólido e borda discreta.
+- Toda rede fica em threads daemon. Workers colocam resultados em filas; o Tk agenda a aplicação LAN com `after(0, callback, ...)`, sem widgets acessados pelos workers. O polling periódico continua a cada 15 segundos.
+- `tools/render_previews.py` utiliza as views reais com dados isolados e sem rede, em 100% e 80%. `main.py --demo` permite revisar a execução sem dispositivos nem mudanças nas configurações.

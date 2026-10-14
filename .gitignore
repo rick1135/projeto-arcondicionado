@@ -24,12 +24,15 @@ dist/
 **/settings.json
 **/tinytuya.json
 **/devices.json
+**/energy_config.json
+**/energy_reference.json
 preferencias.json
-credentials*.json
-secrets*.json
-tokens*.json
-auth*.json
-snapshot*.json
+**/preferences.json
+**/credentials*.json
+**/secrets*.json
+**/tokens*.json
+**/auth*.json
+**/snapshot*.json
 .env
 .env.*
 *.pem
@@ -43,9 +46,9 @@ snapshot*.json
 
 # Banco de dados SQLite e dados locais de telemetria
 energy_history.sqlite3*
-*.sqlite
-*.sqlite3
-*.db
+*.sqlite*
+*.sqlite3*
+*.db*
 data/*.sqlite3
 
 # Pastas de review visual interno e assistente

@@ -1,0 +1,8 @@
+{
+  "captured_date": null,
+  "today_kwh": null,
+  "total_kwh": null,
+  "months": {},
+  "days": {},
+  "note": "Modelo público opcional, sem dados de consumo pessoais. Referências anteriores ficam separadas das medições LAN e Cloud."
+}

@@ -43,10 +43,13 @@ Aplicativo desktop nativo para Windows (Python / Tkinter) que reside na bandeja 
   - Distinção explícita entre ausência de leitura (`--`), leitura pendente e zero confirmado (`0,00`).
 
 ### 🎨 Design & Usabilidade
-- Tema escuro inspirado no **Atmosphere Dark OS (Google Stitch)**.
+- Tema escuro inspirado no **Quick Settings / Flyout do Windows 11 (Google Stitch)**, com fundo sólido `#202020`, acentos azuis, **Segoe UI Variable** e os **SVGs extraídos do ZIP**. As faces nativas do Windows têm alternativa Segoe UI; os ícones acompanham o app em `assets/stitch/`, sem carregamento pela rede.
+- Painel de **380 × 560 px**, posicionado acima da barra de tarefas, com cantos suaves e acabamento Windows via DWM.
+- Grade de seis atalhos: **Modo, Vento, Eco, Tomada EKAZA, Dormir e Display**. A seta da tomada abre a telemetria; o restante do tile alterna o relé, mantendo a proteção do compressor.
 - Janela compacta sem bordas na área de notificação que recolhe automaticamente ao clicar fora.
 - Ícone dinâmico na bandeja com indicação da temperatura atual e estado ligado/desligado.
-- Navegação fluida entre as 3 telas principais: **Dashboard**, **Funções** e **Tomada & Consumo**.
+- Segunda view com potência, tensão, corrente e consumo de hoje; histórico mensal e gráfico diário acessíveis no mesmo flyout.
+- Comandos LAN e consultas Cloud usam workers independentes. Os resultados LAN passam por uma fila e callbacks `root.after(0, ...)` na thread Tk.
 
 <p align="center">
   <img src="docs/images/preview_tela1_dashboard.png" alt="Tela 1 - Dashboard" width="280">&nbsp;&nbsp;
@@ -55,6 +58,16 @@ Aplicativo desktop nativo para Windows (Python / Tkinter) que reside na bandeja 
 </p>
 
 ---
+
+## Prévia e validação do painel Fluent
+
+Depois de instalar as dependências, abra o controle com `.\.venv\Scripts\python.exe main.py --show` ou pelo arquivo **Iniciar Elgin.cmd**.
+
+- `.\.venv\Scripts\python.exe main.py --demo`: prévia com dados ilustrativos, sem rede, sem gravar histórico e sem alterar o início automático.
+- `.\.venv\Scripts\python.exe -m unittest discover -s tests`: testes dos comandos, navegação, consumo e execução real do Tk com rede lenta simulada.
+- `.\.venv\Scripts\python.exe tools/render_previews.py --capture`: revisão das views reais em 100% e 80%, com capturas e relatório em `_ui_review/`.
+
+No controle: arraste a temperatura e solte para enviar uma única alteração; use as setas do teclado para ajustar 1°C. **Tab / Shift+Tab** percorrem as ações e **Enter / Espaço** acionam o item em foco. **Esc** recolhe o painel e **R** atualiza as leituras. O histórico preserva a origem dos valores: Tuya Cloud, contador LAN, estimativa parcial ou referência anterior. Leituras instantâneas antigas/indisponíveis aparecem como `--`.
 
 ## 📁 Estrutura do Projeto
 
@@ -78,8 +91,10 @@ projeto-arcondicionado/
 │
 ├── src/                         # Código-fonte principal da aplicação
 │   ├── elgin_tray.py            # Aplicação na bandeja (Tray) e eventos
-│   ├── elgin_app.py             # Interface e bindings
-│   ├── elgin_art.py             # Renderização procedural do painel em Canvas
+│   ├── elgin_app.py             # Comandos Elgin e entrada compatível
+│   ├── fluent_ui.py             # Views compactas do flyout em Canvas
+│   ├── windows_flyout.py        # Área útil, tema escuro e cantos Windows
+│   ├── elgin_art.py             # Assets legados, fora do fluxo atual
 │   ├── elgin_ac.py              # Comunicação LAN com ar-condicionado
 │   ├── ekaza_plug.py            # Comunicação LAN com tomada EKAZA
 │   ├── energy.py                # Cliente Tuya Cloud API
@@ -87,11 +102,12 @@ projeto-arcondicionado/
 │   ├── energy_cost.py           # Cálculo financeiro de custo mensal
 │   └── bridge.py                # Adaptador de dados
 │
-├── tests/                       # Suíte de 49 testes automatizados
+├── tests/                       # Testes dos comandos, consumo, UI e threads
 │   ├── test_ekaza_plug.py
 │   ├── test_elgin_ac.py
 │   ├── test_elgin_controls.py
 │   ├── test_elgin_tray.py
+│   ├── test_fluent_runtime.py
 │   ├── test_energy_cloud.py
 │   ├── test_energy_cost.py
 │   └── test_energy_history.py
@@ -169,6 +185,10 @@ Copie os modelos em `config/*.example.json` para criar seus arquivos de configur
 }
 ```
 *(As credenciais são geradas na plataforma Tuya IoT Cloud via wizard do TinyTuya).*
+
+As configurações reais, referências de consumo, bancos SQLite e arquivos auxiliares do banco ficam fora do Git. Apenas os arquivos `*.example.json`, sem credenciais ou consumo pessoal, são versionados. Opcionalmente copie `energy_config.example.json` e `energy_reference.example.json` para os nomes sem `.example`; sem esses arquivos o aplicativo usa a tarifa padrão e inicia sem referências pessoais.
+
+Para confirmar a conexão física sem alterar os aparelhos, execute `.\.venv\Scripts\python.exe tools/validar_conexao.py --cloud`. O diagnóstico lê os dois dispositivos e consulta o consumo, exibindo somente estados e medições, sem chaves, IDs ou IPs.
 
 > 🔒 **Segurança**: Arquivos contendo chaves reais (`config.json`, `plug_config.json`, `tinytuya.json`, `settings.json`) e o banco `*.sqlite3` estão no `.gitignore` e nunca são enviados ao GitHub.
 

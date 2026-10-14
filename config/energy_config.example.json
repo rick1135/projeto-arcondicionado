@@ -1,0 +1,7 @@
+{
+  "total_dp": null,
+  "total_scale": 3,
+  "max_estimation_gap_seconds": 300,
+  "price_per_kwh_brl": "1.40",
+  "note": "Modelo público. Defina total_dp somente para um contador total confirmado; DP 17 não é um contador total."
+}

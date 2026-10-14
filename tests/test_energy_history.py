@@ -8,12 +8,19 @@ from datetime import datetime, timedelta
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
+from tests.fixtures import ENERGY_REFERENCE
 
 from energy_history import EnergyHistory, LOCAL_TZ
+import energy_history
+READ_REFERENCE_DATA = energy_history.reference_data
 
 
 class EnergyTests(unittest.TestCase):
     def setUp(self):
+        fixture = patch('energy_history.reference_data', return_value=ENERGY_REFERENCE)
+        fixture.start()
+        self.addCleanup(fixture.stop)
         self.workspace = Path(__file__).resolve().parent
         self.tmp = tempfile.TemporaryDirectory(dir=self.workspace)
         self.path = Path(self.tmp.name) / "history.sqlite3"
@@ -72,7 +79,7 @@ class EnergyTests(unittest.TestCase):
         october = next(m for m in store.monthly(2026) if m["month"] == 10)
         september = next(m for m in store.monthly(2026) if m["month"] == 9)
         self.assertIsNone(october["kwh"])
-        self.assertEqual(september["kwh"], 50.4)
+        self.assertEqual(september["kwh"], 7.5)
         series = store.daily(2026, 10)["days"]
         self.assertIsNone(series[10]["kwh"])
         self.assertIsNone(series[11]["kwh"])
@@ -101,6 +108,20 @@ class EnergyTests(unittest.TestCase):
         for raw in (None, True, -10, float("nan")):
             self.assertFalse(store.record({"19": raw}, self.start))
         self.assertEqual(store.snapshot(self.start)["source"], "reference")
+
+    def test_checkout_sem_arquivos_privados_inicia_com_historico_vazio(self):
+        empty_root = Path(self.tmp.name)
+        with (patch('energy_history.ROOT', empty_root),
+              patch('energy_history.BASE', empty_root/'src'),
+              patch('energy_history.CONFIG_DIR', empty_root/'config'),
+              patch('energy_history.reference_data', wraps=READ_REFERENCE_DATA)):
+            store = EnergyHistory(self.path)
+            snapshot = store.snapshot(self.start)
+            self.assertIsNone(store.total_dp)
+            self.assertEqual(snapshot['source'], 'empty')
+            self.assertIsNone(snapshot['today_kwh'])
+            self.assertIsNone(snapshot['total_kwh'])
+            self.assertTrue(all(month['kwh'] is None for month in store.monthly(2026)))
 
 
 if __name__ == "__main__":

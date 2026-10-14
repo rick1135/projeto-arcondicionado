@@ -1,0 +1,32 @@
+{
+  "source": "code.html do ZIP Stitch fornecido pelo usuário",
+  "font_stack": [
+    "Segoe UI Variable",
+    "Segoe UI",
+    "-apple-system",
+    "BlinkMacSystemFont",
+    "Roboto",
+    "sans-serif"
+  ],
+  "original_icons": [
+    "chevron",
+    "connected",
+    "display",
+    "eco",
+    "extras",
+    "fan",
+    "mode",
+    "plug",
+    "power",
+    "settings",
+    "temperature",
+    "temperature_options",
+    "tray"
+  ],
+  "complementary_icons": [
+    "refresh",
+    "sleep"
+  ],
+  "raster_size": 192,
+  "raster_note": "PNG transparente de alta resolução derivado do SVG; Pillow adapta à escala Tk."
+}

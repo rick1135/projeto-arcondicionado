@@ -35,7 +35,7 @@ class EnergyCostTests(unittest.TestCase):
         app.canvas = Mock()
         app.energy_header = app.rounded = app.label = app.fit_label = app.metric_value = app.hit = Mock()
         app.draw_energy_month()
-        self.assertTrue(any('R$ 70,56' in call.args for call in app.fit_label.call_args_list))
+        self.assertTrue(any('R$ 70,56' in str(call.args) for call in app.label.call_args_list))
 
 
 if __name__ == '__main__':
