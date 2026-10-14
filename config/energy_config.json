@@ -1,7 +1,0 @@
-{
-  "total_dp": null,
-  "total_scale": 3,
-  "max_estimation_gap_seconds": 300,
-  "price_per_kwh_brl": 1.40,
-  "note": "Preencha total_dp apenas com um contador TOTAL confirmado. O DP 17 desta EKAZA é add_ele incremental e não pode ser usado como total. Sem contador, integra potência (estimativa local)."
-}
