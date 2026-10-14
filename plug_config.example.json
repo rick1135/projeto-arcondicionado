@@ -1,0 +1,7 @@
+{
+  "name": "tomada ar",
+  "device_id": "seu_device_id_tomada_aqui",
+  "ip": "192.168.1.101",
+  "local_key": "sua_local_key_tomada_aqui",
+  "version": "3.5"
+}

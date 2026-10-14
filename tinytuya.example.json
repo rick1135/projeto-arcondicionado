@@ -1,0 +1,6 @@
+{
+  "apiKey": "sua_api_key_tuya_iot_aqui",
+  "apiSecret": "seu_api_secret_tuya_iot_aqui",
+  "apiRegion": "us",
+  "apiDeviceID": "seu_device_id_aqui"
+}

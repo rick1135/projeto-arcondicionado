@@ -1,50 +1,72 @@
-# Credenciais/configuracoes TinyTuya, inclusive em subpastas
-devices*.json
-snapshot*.json
-tuya*.json
-tinytuya*.json
-preferencias*.json
+# Ambientes virtuais
+.venv/
+venv/
+ENV/
+env/
+
+# Cache Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Builds e empacotamento
+build/
+dist/
+*.egg-info/
+*.spec
+
+# Credenciais e configurações locais com dados privados
+config.json
+plug_config.json
+settings.json
+tinytuya.json
+**/tinytuya.json
+devices.json
+preferencias.json
 credentials*.json
 secrets*.json
 tokens*.json
 auth*.json
-config.local.*
+snapshot*.json
 .env
 .env.*
 *.pem
 *.key
 *.pfx
 *.p12
-# Ambientes, caches e builds
-.venv/
-venv/
-env/
-__pycache__/
-*.py[cod]
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-build/
-dist/
-*.egg-info/
-*.spec
+
+# Permitir expressamente os modelos/exemplos públicos
+!*.example.json
+
+# Banco de dados SQLite e dados locais de telemetria
+energy_history.sqlite3*
 *.sqlite
 *.sqlite3
 *.db
-# Dados pessoais, logs e capturas
+
+# Pastas de review visual interno e assistente
+_ui_review/
+.impeccable/
+
+# Logs e arquivos temporários
 *.log
-*.zip
-*.jpg
-*.jpeg
-*.png
-*.mp4
 *.bak
 *.tmp
+
+# Sistema operacional e IDEs
 .idea/
 .vscode/
 Thumbs.db
 Desktop.ini
 .DS_Store
-!docs/
-!docs/images/
-!docs/images/*.png
+
+# Imagens gerais ignoradas, exceto prévias do projeto e assets do design
+*.jpg
+*.jpeg
+*.mp4
+*.zip
+!preview_*.png
+!stitch_smart_ac_remote_ui/**
