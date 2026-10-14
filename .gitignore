@@ -19,12 +19,11 @@ dist/
 *.spec
 
 # Credenciais e configurações locais com dados privados
-config.json
-plug_config.json
-settings.json
-tinytuya.json
+**/config.json
+**/plug_config.json
+**/settings.json
 **/tinytuya.json
-devices.json
+**/devices.json
 preferencias.json
 credentials*.json
 secrets*.json
@@ -40,15 +39,18 @@ snapshot*.json
 
 # Permitir expressamente os modelos/exemplos públicos
 !*.example.json
+!config/*.example.json
 
 # Banco de dados SQLite e dados locais de telemetria
 energy_history.sqlite3*
 *.sqlite
 *.sqlite3
 *.db
+data/*.sqlite3
 
 # Pastas de review visual interno e assistente
 _ui_review/
+**/_ui_review/
 .impeccable/
 
 # Logs e arquivos temporários
@@ -68,5 +70,4 @@ Desktop.ini
 *.jpeg
 *.mp4
 *.zip
-!preview_*.png
-!stitch_smart_ac_remote_ui/**
+!docs/images/*.png

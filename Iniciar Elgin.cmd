@@ -17,4 +17,4 @@ if errorlevel 1 (
     pause
     exit /b 1
 )
-start "" ".venv\Scripts\pythonw.exe" "elgin_tray.py" --show
+start "" ".venv\Scripts\pythonw.exe" "main.py" --show
